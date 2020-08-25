@@ -1,0 +1,33 @@
+project(spake2plus VERSION 1.0)
+
+add_library(${PROJECT_NAME} SHARED spake2plus.c)
+
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}")
+
+if( NOT OPENSSL_ROOT_DIR )
+    if( NOT OPENSSL_VERSION )
+        find_package(OpenSSL REQUIRED )
+    else()
+        find_package(OpenSSL "${OPENSSL_VERSION}" EXACT REQUIRED )
+    endif()
+    find_library(CRYPTO_LIBRARY crypto)
+    find_library(SSL_LIBRARY ssl )
+else()
+    if(NOT OPENSSL_CRYPTO_LIBRARY)
+        SET(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_ROOT_DIR}/lib")
+    endif()
+    if(NOT OPENSSL_INCLUDE_DIR)
+        SET(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
+    endif()
+    find_library(CRYPTO_LIBRARY crypto HINTS "${OPENSSL_CRYPTO_LIBRARY}")
+    find_library(SSL_LIBRARY ssl HINTS "${OPENSSL_CRYPTO_LIBRARY}")
+    target_include_directories(${PROJECT_NAME} PUBLIC "${OPENSSL_INCLUDE_DIR}/")
+    if( NOT OPENSSL_VERSION )
+        find_package(OpenSSL REQUIRED PATH "${OPENSSL_ROOT_DIR}")
+    else()
+        find_package(OpenSSL "${OPENSSL_VERSION}" EXACT REQUIRED PATH "${OPENSSL_ROOT_DIR}")
+    endif()
+endif()
+
+target_link_libraries(${PROJECT_NAME} "${SSL_LIBRARY}" "${CRYPTO_LIBRARY}")
+
